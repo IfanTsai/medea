@@ -15,6 +15,6 @@ sudo make install
 medea
 ```
 
-![medea](https://img.caiyifan.cn/typora_picgo/medea.gif) 
+<img src='https://img.caiyifan.cn/typora_picgo/medea_07_13_01.gif' alt='medea-gif'> 
 
 ![image-20220709190503703](https://img.caiyifan.cn/typora_picgo/image-20220709190503703.png) 

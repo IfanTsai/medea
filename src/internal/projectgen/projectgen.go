@@ -47,6 +47,14 @@ func GenerateProject(projectTemplate *res.ProjectTemplate, projectInfo *res.Proj
 		os.RemoveAll(projectInfo.Path)
 		log.Fatalln(err)
 	}
+
+	description, err := generateString(projectTemplate.DescriptionAfterGenerated, projectInfo)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println()
+	fmt.Println(description)
 }
 
 func copyFile(embedFs fs.FS, projectInfo *res.ProjectInfo, srcPath, dstPath string) error {

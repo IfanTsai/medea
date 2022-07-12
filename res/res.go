@@ -1,6 +1,8 @@
 package res
 
-import "embed"
+import (
+	"embed"
+)
 
 type TypeFramework string
 
@@ -18,9 +20,10 @@ type ProjectInfo struct {
 }
 
 type ProjectTemplate struct {
-	Framework TypeFramework
-	EmbedFs   *embed.FS
-	RootPath  string
+	Framework                 TypeFramework
+	EmbedFs                   *embed.FS
+	RootPath                  string
+	DescriptionAfterGenerated string
 }
 
 //go:embed gin-template/*
@@ -31,5 +34,15 @@ var ProjectTemplateMap = map[TypeFramework]*ProjectTemplate{
 		Framework: TypeFrameworkGin,
 		EmbedFs:   &ginTemplate,
 		RootPath:  "gin-template",
+		DescriptionAfterGenerated: `
+Scaffolding project in {{ .ProjectPath }}...
+
+Done. Now run:
+
+  cd {{ .ProjectPath }}
+  go mod tidy
+  ENV=dev go run main.go
+
+`,
 	},
 }

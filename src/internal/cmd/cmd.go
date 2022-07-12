@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"path/filepath"
 	"res"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -42,7 +43,7 @@ func Run() (*res.ProjectInfo, error) {
 		return nil, errors.Wrap(err, "failed to ask questions")
 	}
 
-	answer.ProjectPath = answer.Path + "/" + answer.ProjectName
+	answer.ProjectPath = filepath.Clean(answer.Path + "/" + answer.ProjectName)
 	answer.GoModulePath = answer.ModuleName
 
 	return &answer, nil

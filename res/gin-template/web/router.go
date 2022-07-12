@@ -6,6 +6,7 @@ import (
     "net/http"
     "{{ .GoModulePath }}/web/handlers"
 
+    "github.com/IfanTsai/go-lib/config"
     "github.com/IfanTsai/go-lib/gin/middlewares"
     "github.com/IfanTsai/go-lib/logger"
     "github.com/gin-gonic/gin"
@@ -30,9 +31,11 @@ func NewGinServer(address string) (*GinServer, error) {
 }
 
 func (s *GinServer) setupRouter() {
-    gin.SetMode(gin.ReleaseMode)
+    if !config.IsDebugMode() {
+        gin.SetMode(gin.ReleaseMode)
+    }
 
-    version := "1.0.0"
+    version := config.GetVersion()
 
     jsonLogger, err := logger.NewJSONLogger(
         logger.WithDisableConsole(),

@@ -5,7 +5,7 @@ all: build
 
 PHONY += build
 build:
-	go build -o $(BIN) src/main.go
+	go build -ldflags="-s -w" -o $(BIN) src/main.go
 
 PHONY += install
 install: $(BIN)

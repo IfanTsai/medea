@@ -92,9 +92,20 @@ func generateString(str string, data interface{}) (string, error) {
 }
 
 func executeCmdInProject(projectInfo *res.ProjectInfo) error {
-	script := strings.Join([]string{
+	scriptLines := []string{
 		fmt.Sprintf("ln -sf cmd/%s/run.go main.go", projectInfo.ModuleName),
-	}, "\n")
+		"chmod +x git-hooks/pre-commit",
+	}
+
+	if len(projectInfo.GitRepoURL) > 0 {
+		scriptLines = append(scriptLines, []string{
+			"echo '' && git init",
+			"git remote add origin " + projectInfo.GitRepoURL,
+			"ln -sf git-hooks/pre-commit .git/hooks/pre-commit",
+		}...)
+	}
+
+	script := strings.Join(scriptLines, "\n")
 
 	cmd := exec.Command("/bin/sh", "-c", script)
 	cmd.Dir = projectInfo.ProjectPath

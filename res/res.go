@@ -15,8 +15,9 @@ type ProjectInfo struct {
 	ProjectName  string `survey:"project-name"`
 	ModuleName   string `survey:"module-name"`
 	Path         string `survey:"path"`
-	ProjectPath  string
-	GoModulePath string
+	GitRepoURL   string `survey:"git-repo-url"`
+	ProjectPath  string // Path + ProjectName
+	GoModulePath string // go module path in go.mod
 }
 
 type ProjectTemplate struct {

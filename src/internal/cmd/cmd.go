@@ -3,6 +3,7 @@ package cmd
 import (
 	"path/filepath"
 	"res"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
@@ -44,7 +45,8 @@ func Run() (*res.ProjectInfo, error) {
 	}
 
 	answer.ProjectPath = filepath.Clean(answer.Path + "/" + answer.ProjectName)
-	answer.GoModulePath = answer.ModuleName
+	answer.ProjectName = strings.ReplaceAll(answer.ProjectName, "-", "_")
+	answer.GoModulePath = answer.ModuleName // module xxx
 
 	return &answer, nil
 }

@@ -2,8 +2,10 @@ package web
 
 import (
     "context"
+    "github.com/IfanTsai/go-lib/user/token"
     "log"
     "net/http"
+    "{{ .GoModulePath }}/internal/db"
     "{{ .GoModulePath }}/web/handlers"
 
     "github.com/IfanTsai/go-lib/config"
@@ -15,14 +17,27 @@ import (
 
 // GinServer serves HTTP requests for web service.
 type GinServer struct {
-    server  *http.Server
-    address string
+    server        *http.Server
+    address       string
+    tokenMaker    token.Maker
+    accessLogPath string
+    panicLogPath  string
+    dbLogPath     string
 }
 
 // NewGinServer creates a new HTTP gin server and setup routing.
 func NewGinServer(address string) (*GinServer, error) {
+    tokenMaker, err := token.NewJWTMaker(config.GetTokenSymmetricKey())
+    if err != nil {
+        return nil, errors.Wrap(err, "cannot create token maker")
+    }
+
     server := &GinServer{
-        address: address,
+        address:       address,
+        tokenMaker:    tokenMaker,
+        accessLogPath: config.GetString("log.access_path"),
+        panicLogPath:  config.GetString("log.panic_path"),
+        dbLogPath:     config.GetString("log.db_path"),
     }
 
     server.setupRouter()
@@ -31,18 +46,14 @@ func NewGinServer(address string) (*GinServer, error) {
 }
 
 func (s *GinServer) setupRouter() {
-    if !config.IsDebugMode() {
-        gin.SetMode(gin.ReleaseMode)
-    }
-
     version := config.GetVersion()
 
-    jsonLogger, err := logger.NewJSONLogger(
-        logger.WithDisableConsole(),
-        logger.WithFileRotationP("./logs/{{ .ProjectName }}.log"),
-    )
-    if err != nil {
-        log.Fatalln("cannot new json logger, err:", err)
+    if err := db.Init(s.dbLogPath); err != nil {
+        log.Fatal(err)
+    }
+
+    if !config.IsDebugMode() {
+        gin.SetMode(gin.ReleaseMode)
     }
 
     router := gin.New()
@@ -52,16 +63,24 @@ func (s *GinServer) setupRouter() {
         Handler: router,
     }
 
+    accessLogger := logger.NewJSONLogger(logger.WithFileRotationP(s.accessLogPath))
+    panicLogger := logger.NewJSONLogger(logger.WithFileRotationP(s.panicLogPath))
+
     router.Use(
-        middlewares.Recovery(version, jsonLogger, true),
-        middlewares.Logger(jsonLogger),
+        middlewares.Recovery(version, panicLogger, true),
+        middlewares.SetTokenMaker(s.tokenMaker),
+        middlewares.Logger(accessLogger),
         middlewares.Jsonifier(version),
     )
 
-    middlewares.NewPrometheus("{{ .ProjectName }}", "{{ .ModuleName }}").Use(router)
+    middlewares.NewPrometheus("", "{{ .ProjectName }}").Use(router)
 
     v1API := router.Group("/apis/{{ .ProjectName }}/v1")
-    v1API.GET("/user", handlers.GetUser)
+    v1API.POST("/user/create", handlers.CreateUser)
+    v1API.POST("/user/login", handlers.LoginUser)
+
+    authAPI := v1API.Use(middlewares.Authorization(version, s.tokenMaker))
+    authAPI.GET("/user", handlers.GetUser)
 }
 
 // Start runs the HTTP server on a specific address.

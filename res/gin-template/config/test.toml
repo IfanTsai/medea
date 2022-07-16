@@ -1,6 +1,32 @@
 version = "0.0.1"
-debug_mode = false
 
 [http_server]
 ip = "0.0.0.0"
 port = 8080
+
+[token]
+symmetric_key = "12345678901234567890123456789012"
+access_duration = "15m"
+
+[log]
+access_path = "logs/access.log"
+panic_path = "logs/panic.log"
+db_path = "logs/db.log"
+
+[mysql]
+log = true
+max_open_connections = 10
+max_idle_connections = 60
+max_lifetime_duration = "60m"
+
+[mysql.read]
+addr = "127.0.0.1:3306"
+user = "root"
+password = "123456789"
+name = "{{ .ProjectName }}"
+
+[mysql.write]
+addr = "127.0.0.1:3306"
+user = "root"
+password = "123456789"
+name = "{{ .ProjectName }}"
